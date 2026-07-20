@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@anstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion } from "motion/react";
 import {
     MapPin,
@@ -26,10 +26,10 @@ import {
     Moon,
     Phone,
     Mail,
-    Github,
+    Copy,
     Heart,
     Share2,
-    Send,
+    Info,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -372,7 +372,7 @@ function Footer() {
                         </div>
                         <p className="mt-3 text-xs text-muted-foreground">A Smart City initiative to make civic engagement simple, transparent and effective.</p>
                         <div className="mt-4 flex gap-2">
-                            {[Twitter, Facebook, Instagram, Linkedin].map((I, i) => (
+                            {[Copy, Heart, Share2, Info].map((I, i) => (
                                 <a key={i} href="#" className="grid h-9 w-9 place-items-center rounded-lg border border-border text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"><I className="h-4 w-4" /></a>
                             ))}
                         </div>
