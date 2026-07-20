@@ -13,14 +13,11 @@ export const Route = createFileRoute("/auth")({
     component: AuthPage,
 });
 
-type Role = "citizen" | "officer" | "admin";
-type Mode = "login" | "register";
-
 function AuthPage() {
-    const [role, setRole] = useState<Role>("citizen");
-    const [mode, setMode] = useState<Mode>("login");
+    const [role, setRole] = useState("citizen");
+    const [mode, setMode] = useState("login");
 
-    const roles: { id: Role; label: string; desc: string; icon: typeof User }[] = [
+    const roles = [
         { id: "citizen", label: "Citizen", desc: "Report and track", icon: User },
         { id: "officer", label: "Officer", desc: "Resolve complaints", icon: UserCog },
         { id: "admin", label: "Administrator", desc: "Manage the city", icon: ShieldAlert },
@@ -63,7 +60,7 @@ function AuthPage() {
                         <ArrowLeft className="h-3.5 w-3.5" /> Home
                     </Link>
                     <div className="grid grid-cols-2 gap-2 rounded-xl bg-muted p-1 text-sm font-semibold">
-                        {(["login", "register"] as Mode[]).map((m) => (
+                        {["login", "register"].map((m) => (
                             <button key={m} onClick={() => setMode(m)} className={`rounded-lg py-2 transition-colors ${mode === m ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"}`}>
                                 {m === "login" ? "Sign in" : "Register"}
                             </button>
@@ -109,7 +106,7 @@ function AuthPage() {
     );
 }
 
-function Field({ label, icon: Icon, ...props }: { label: string; icon: typeof User } & React.InputHTMLAttributes<HTMLInputElement>) {
+function Field({ label, icon: Icon, ...props }) {
     return (
         <label className="block">
             <div className="mb-1.5 text-xs font-semibold text-foreground">{label}</div>

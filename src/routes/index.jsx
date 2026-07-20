@@ -32,10 +32,7 @@ import {
     Info,
 } from "lucide-react";
 import { useEffect, useState } from "react";
-
-// Mock hero image - replace with actual image when available
-const heroImage = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1600 1200'%3E%3Crect fill='%23f3f4f6' width='1600' height='1200'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dominant-baseline='middle' font-size='48' fill='%236b7280'%3ESmart City Hero Image%3C/text%3E%3C/svg%3E";
-
+import heroImage from "../assets/download.jpg";
 export const Route = createFileRoute("/")({
     component: Index,
 });
@@ -401,7 +398,7 @@ function Footer() {
     );
 }
 
-function FooterCol({ title, items }: { title: string; items: string[] }) {
+function FooterCol({ title, items }) {
     return (
         <div>
             <div className="text-sm font-bold">{title}</div>
@@ -414,7 +411,7 @@ function FooterCol({ title, items }: { title: string; items: string[] }) {
     );
 }
 
-function SectionHeading({ eyebrow, title, desc }: { eyebrow: string; title: string; desc: string }) {
+function SectionHeading({ eyebrow, title, desc }) {
     return (
         <div className="mx-auto max-w-2xl text-center">
             <div className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1 text-xs font-medium text-primary">

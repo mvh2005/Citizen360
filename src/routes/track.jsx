@@ -45,7 +45,7 @@ function TrackPage() {
                             <Search className="h-4 w-4 text-muted-foreground" />
                             <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="CT-2087 or +91 98xxxxxxxx" className="w-full bg-transparent text-sm outline-none" />
                         </div>
-                        <button className="rounded-xl gradient-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-md shadow-primary/30">
+                        <button className="rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-md hover:bg-primary/90">
                             Track
                         </button>
                     </div>
@@ -93,7 +93,7 @@ function TrackPage() {
                         <div className="rounded-3xl border border-border bg-card p-5">
                             <div className="text-sm font-bold">Assigned Officer</div>
                             <div className="mt-3 flex items-center gap-3">
-                                <div className="grid h-10 w-10 place-items-center rounded-full gradient-primary text-sm font-bold text-primary-foreground">RM</div>
+                                <div className="grid h-10 w-10 place-items-center rounded-full bg-primary text-sm font-bold text-primary-foreground">RM</div>
                                 <div>
                                     <div className="text-sm font-semibold">Rajeev Menon</div>
                                     <div className="text-xs text-muted-foreground">Roads Dept. · 4.8★</div>
@@ -107,7 +107,7 @@ function TrackPage() {
     );
 }
 
-function ActionBtn({ icon: Icon, label }: { icon: typeof Search; label: string }) {
+function ActionBtn({ icon: Icon, label }) {
     return (
         <button className="flex items-center gap-2 rounded-xl border border-border bg-background px-3 py-2.5 text-xs font-semibold hover:bg-muted">
             <Icon className="h-4 w-4 text-primary" /> {label}

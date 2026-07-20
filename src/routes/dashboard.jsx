@@ -46,7 +46,7 @@ function Dashboard() {
                                 <div className="text-xs font-medium uppercase tracking-widest text-muted-foreground">Welcome back</div>
                                 <h1 className="text-2xl font-extrabold sm:text-3xl">Priya Sharma</h1>
                             </div>
-                            <Link to="/report" className="inline-flex items-center gap-2 rounded-xl gradient-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow-md shadow-primary/30">
+                            <Link to="/report" className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow-md hover:bg-primary/90">
                                 <FilePlus2 className="h-4 w-4" /> New Complaint
                             </Link>
                         </div>
@@ -136,8 +136,7 @@ function Dashboard() {
         </div>
     );
 }
-
-function StatCard({ icon: Icon, label, value, tint, trend }: { icon: typeof FileText; label: string; value: string; tint: string; trend?: string }) {
+function StatCard({ icon: Icon, label, value, tint, trend }) {
     return (
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="rounded-3xl border border-border bg-card p-5 shadow-sm">
             <div className={`inline-grid h-10 w-10 place-items-center rounded-xl ${tint}`}><Icon className="h-5 w-5" /></div>
@@ -150,8 +149,8 @@ function StatCard({ icon: Icon, label, value, tint, trend }: { icon: typeof File
     );
 }
 
-function StatusBadge({ s }: { s: string }) {
-    const map: Record<string, string> = {
+function StatusBadge({ s }) {
+    const map = {
         Pending: "bg-muted text-muted-foreground",
         Assigned: "bg-primary/15 text-primary",
         "In Progress": "bg-warning/20 text-warning",
@@ -173,7 +172,7 @@ function Sidebar() {
     return (
         <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 border-r border-border bg-sidebar lg:block">
             <div className="flex h-16 items-center gap-2 border-b border-border px-5">
-                <div className="grid h-9 w-9 place-items-center rounded-xl gradient-primary text-primary-foreground"><ShieldCheck className="h-5 w-5" /></div>
+                <div className="grid h-9 w-9 place-items-center rounded-xl bg-primary text-primary-foreground"><ShieldCheck className="h-5 w-5" /></div>
                 <div>
                     <div className="text-sm font-extrabold">Citizen360</div>
                     <div className="text-[10px] uppercase tracking-widest text-muted-foreground">Citizen Portal</div>
@@ -181,7 +180,7 @@ function Sidebar() {
             </div>
             <nav className="p-3">
                 {items.map((i) => (
-                    <Link key={i.label} to={i.to} className={`mb-1 flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${i.active ? "gradient-primary text-primary-foreground shadow-md shadow-primary/30" : "text-muted-foreground hover:bg-muted hover:text-foreground"}`}>
+                    <Link key={i.label} to={i.to} className={`mb-1 flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${i.active ? "bg-primary text-primary-foreground shadow-md" : "text-muted-foreground hover:bg-muted hover:text-foreground"}`}>
                         <i.icon className="h-4 w-4" /> {i.label}
                     </Link>
                 ))}
@@ -202,14 +201,14 @@ function TopNav() {
                 </Link>
                 <div className="hidden flex-1 items-center gap-2 rounded-xl border border-border bg-card px-3 py-2 sm:flex sm:max-w-md">
                     <Search className="h-4 w-4 text-muted-foreground" />
-                    <input placeholder="Search complaints, officers, locations…" className="w-full bg-transparent text-sm outline-none" />
+                    <input placeholder="Search complaints, locations…" className="w-full bg-transparent text-sm outline-none" />
                 </div>
                 <div className="flex items-center gap-2">
                     <button className="relative grid h-9 w-9 place-items-center rounded-lg border border-border bg-card">
                         <Bell className="h-4 w-4" />
                         <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-destructive" />
                     </button>
-                    <div className="grid h-9 w-9 place-items-center rounded-full gradient-primary text-xs font-bold text-primary-foreground">PS</div>
+                    <div className="grid h-9 w-9 place-items-center rounded-full bg-primary text-xs font-bold text-primary-foreground">PS</div>
                 </div>
             </div>
         </header>

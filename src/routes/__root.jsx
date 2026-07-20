@@ -1,13 +1,12 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { useEffect } from "react";
 import {
     Outlet,
     Link,
     createRootRouteWithContext,
     useRouter,
     HeadContent,
-    Scripts,
 } from "@tanstack/react-router";
-import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
@@ -34,7 +33,7 @@ function NotFoundComponent() {
     );
 }
 
-function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
+function ErrorComponent({ error, reset }) {
     console.error(error);
     const router = useRouter();
     useEffect(() => {
@@ -72,7 +71,7 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
     );
 }
 
-export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
+export const Route = createRootRouteWithContext()({
     head: () => ({
         meta: [
             { charSet: "utf-8" },
@@ -109,17 +108,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     errorComponent: ErrorComponent,
 });
 
-function RootShell({ children }: { children: ReactNode }) {
+function RootShell({ children }) {
     return (
-        <html lang="en">
-            <head>
-                <HeadContent />
-            </head>
-            <body>
-                {children}
-                <Scripts />
-            </body>
-        </html>
+        <>
+            <HeadContent />
+            {children}
+        </>
     );
 }
 
