@@ -429,23 +429,23 @@ app.upload.dir=uploads
 ## 🔐 Authentication Flow (JWT)
 
 ```
-  User                   Frontend                  Backend
-   │                        │                          │
+  User                    Frontend                  Backend
+   │                         │                          │
    │── Login (email/pass) ──►│                          │
-   │                        │── POST /api/auth/login ──►│
-   │                        │                          │ Validate credentials
-   │                        │                          │ Generate JWT token
-   │                        │◄── { token, role, ... } ─│
-   │                        │ Store token in             │
-   │                        │ localStorage               │
-   │                        │                          │
+   │                         │── POST /api/auth/login ──►│
+   │                         │                          │ Validate credentials
+   │                         │                          │ Generate JWT token
+   │                         │◄── { token, role, ... } ─│
+   │                         │ Store token in           │
+   │                         │ localStorage             │
+   │                         │                          │
    │── Navigate to /report ─►│                          │
-   │                        │── GET /api/complaints ───►│
-   │                        │   (Authorization: Bearer   │
-   │                        │    <token>)                │ JwtAuthFilter validates
-   │                        │                          │ token, extracts user
-   │                        │◄── complaint data ────────│
-   │◄── rendered page ──────│                          │
+   │                         │── GET /api/complaints ──►│
+   │                         │   (Authorization: Bearer │
+   │                         │    <token>)              │ JwtAuthFilter validates
+   │                         │                          │ token, extracts user
+   │                         │◄── complaint data ───────│
+   │◄── rendered page ────── │                          │
 ```
 
 The JWT token:
@@ -530,9 +530,9 @@ These users are automatically inserted on first startup (password for all: `pass
                  └────┬───────────┘
                       │ Work complete
               ┌───────┴────────┐
-         ┌────▼─────┐     ┌───▼──────┐
-         │ RESOLVED │     │ REJECTED │
-         └──────────┘     └──────────┘
+         ┌────▼─────┐      ┌───▼──────┐
+         │ RESOLVED │      │ REJECTED │
+         └──────────┘      └──────────┘
 ```
 
 ---
