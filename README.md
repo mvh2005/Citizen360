@@ -506,7 +506,7 @@ Contributions are welcome!
 
 ## 📄 License
 
-This project is a **Government of India Smart City Initiative** prototype.
+MIT License
 
 ---
 
