@@ -72,43 +72,43 @@ Municipal officers are then notified, assigned the task, and can update the reso
 ┌──────────────────────────────────────────────────────────────┐
 │                       USER'S BROWSER                         │
 │                                                              │
-│   React 19 Frontend (Vite dev server on port 5173)          │
-│   ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐  │
-│   │ Home     │  │ Auth     │  │ Report   │  │ Track    │  │
-│   │ Page     │  │ (Login/  │  │ Complaint│  │ Status   │  │
-│   │          │  │ Register)│  │          │  │          │  │
-│   └──────────┘  └──────────┘  └──────────┘  └──────────┘  │
+│   React 19 Frontend (Vite dev server on port 5173)           │
+│   ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐     │
+│   │ Home     │  │ Auth     │  │ Report   │  │ Track    │     │
+│   │ Page     │  │ (Login/  │  │ Complaint│  │ Status   │     │
+│   │          │  │ Register)│  │          │  │          │     │
+│   └──────────┘  └──────────┘  └──────────┘  └──────────┘     │
 │                                                              │
-│         All /api/* requests → Vite Proxy → port 8080        │
+│         All /api/* requests → Vite Proxy → port 8080         │
 └───────────────────────────┬──────────────────────────────────┘
                             │ HTTP / JSON (REST API)
 ┌───────────────────────────▼──────────────────────────────────┐
-│                    SPRING BOOT BACKEND                        │
-│                     (port 8080)                               │
+│                    SPRING BOOT BACKEND                       │
+│                     (port 8080)                              │
 │                                                              │
-│   ┌─────────────┐  ┌─────────────┐  ┌────────────────────┐ │
-│   │ Auth        │  │ Complaint   │  │ Dashboard /        │ │
-│   │ Controller  │  │ Controller  │  │ File Controller    │ │
-│   └──────┬──────┘  └──────┬──────┘  └─────────┬──────────┘ │
-│          │                │                    │            │
-│   ┌──────▼──────────────────────────────────────▼──────────┐│
-│   │                JWT Security Filter                      ││
-│   │          (validates every protected request)           ││
+│   ┌─────────────┐  ┌─────────────┐  ┌────────────────────┐   │
+│   │ Auth        │  │ Complaint   │  │ Dashboard /        │   │
+│   │ Controller  │  │ Controller  │  │ File Controller    │   │
+│   └──────┬──────┘  └──────┬──────┘  └─────────┬──────────┘   │
+│          │                │                    │             │
+│   ┌──────▼──────────────────────────────────────▼──────────┐ │
+│   │                JWT Security Filter                     │ │
+│   │          (validates every protected request)           │ │
 │   └─────────────────────────────────────────────────────────┘│
 │                                                              │
-│   ┌─────────────┐  ┌─────────────┐  ┌─────────────────────┐│
-│   │ Auth        │  │ Complaint   │  │ File Storage        ││
-│   │ Service     │  │ Service     │  │ Service             ││
-│   └──────┬──────┘  └──────┬──────┘  └──────┬──────────────┘│
-│          │                │                 │               │
-│   ┌──────▼────────────────▼─────────────────▼─────────────┐│
-│   │              Spring Data JPA Repositories              ││
-│   └─────────────────────────┬──────────────────────────────┘│
+│   ┌─────────────┐  ┌─────────────┐  ┌─────────────────────┐  │
+│   │ Auth        │  │ Complaint   │  │ File Storage        │  │
+│   │ Service     │  │ Service     │  │ Service             │  │
+│   └──────┬──────┘  └──────┬──────┘  └──────┬──────────────┘  │
+│          │                │                 │                │
+│   ┌──────▼────────────────▼─────────────────▼─────────────┐  │
+│   │              Spring Data JPA Repositories              │ │
+│   └─────────────────────────┬──────────────────────────────┘ │
 └─────────────────────────────┼────────────────────────────────┘
                               │ JDBC (MySQL Connector)
 ┌─────────────────────────────▼────────────────────────────────┐
-│                    MYSQL DATABASE                             │
-│              citizen360_db @ localhost:3306                   │
+│                    MYSQL DATABASE                            │
+│              citizen360_db @ localhost:3306                  │
 │                                                              │
 │   [ users ]  [ complaints ]  [ complaint_images ]            │
 │   [ complaint_timeline ]                                     │
