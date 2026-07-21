@@ -2,19 +2,19 @@
 -- Citizen360 — Seed Data
 -- =============================================
 -- Passwords are BCrypt-encoded: "password123"
--- $2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy
+-- $2a$10$gsYprNdHFvnnNyzFtHJ5/.Die7MW35aHXmVSyvBeWzd0qYbhy3WMe
 
 -- Insert users only if the table is empty
 INSERT INTO users (full_name, email, password, role, created_at)
-SELECT 'Priya Sharma', 'priya@citizen360.com', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'CITIZEN', NOW()
+SELECT 'Priya Sharma', 'priya@citizen360.com', '$2a$10$gsYprNdHFvnnNyzFtHJ5/.Die7MW35aHXmVSyvBeWzd0qYbhy3WMe', 'CITIZEN', NOW()
 FROM dual WHERE NOT EXISTS (SELECT 1 FROM users WHERE email = 'priya@citizen360.com');
 
 INSERT INTO users (full_name, email, password, role, created_at)
-SELECT 'Rajeev Menon', 'rajeev@citizen360.com', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'OFFICER', NOW()
+SELECT 'Rajeev Menon', 'rajeev@citizen360.com', '$2a$10$gsYprNdHFvnnNyzFtHJ5/.Die7MW35aHXmVSyvBeWzd0qYbhy3WMe', 'OFFICER', NOW()
 FROM dual WHERE NOT EXISTS (SELECT 1 FROM users WHERE email = 'rajeev@citizen360.com');
 
 INSERT INTO users (full_name, email, password, role, created_at)
-SELECT 'Admin User', 'admin@citizen360.com', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'ADMIN', NOW()
+SELECT 'Admin User', 'admin@citizen360.com', '$2a$10$gsYprNdHFvnnNyzFtHJ5/.Die7MW35aHXmVSyvBeWzd0qYbhy3WMe', 'ADMIN', NOW()
 FROM dual WHERE NOT EXISTS (SELECT 1 FROM users WHERE email = 'admin@citizen360.com');
 
 -- Insert sample complaints only if table is empty
