@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { motion } from "motion/react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ShieldCheck, User, UserCog, ShieldAlert, Mail, Lock, ArrowRight, ArrowLeft, Loader2 } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
 
