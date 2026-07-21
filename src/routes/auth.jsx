@@ -1,7 +1,8 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { motion } from "motion/react";
 import { useState } from "react";
-import { ShieldCheck, User, UserCog, ShieldAlert, Mail, Lock, ArrowRight, ArrowLeft } from "lucide-react";
+import { ShieldCheck, User, UserCog, ShieldAlert, Mail, Lock, ArrowRight, ArrowLeft, Loader2 } from "lucide-react";
+import { useAuth } from "../hooks/useAuth";
 
 export const Route = createFileRoute("/auth")({
     head: () => ({
@@ -16,12 +17,32 @@ export const Route = createFileRoute("/auth")({
 function AuthPage() {
     const [role, setRole] = useState("citizen");
     const [mode, setMode] = useState("login");
+    const [fullName, setFullName] = useState("");
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const { login, register, loading, error, clearError } = useAuth();
+    const navigate = useNavigate();
 
     const roles = [
         { id: "citizen", label: "Citizen", desc: "Report and track", icon: User },
         { id: "officer", label: "Officer", desc: "Resolve complaints", icon: UserCog },
         { id: "admin", label: "Administrator", desc: "Manage the city", icon: ShieldAlert },
     ];
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        clearError();
+        try {
+            if (mode === "login") {
+                await login(email, password, role);
+            } else {
+                await register(fullName, email, password, role);
+            }
+            navigate({ to: "/dashboard" });
+        } catch {
+            // Error is already set in auth context
+        }
+    };
 
     return (
         <div className="min-h-screen gradient-hero">
@@ -61,7 +82,7 @@ function AuthPage() {
                     </Link>
                     <div className="grid grid-cols-2 gap-2 rounded-xl bg-muted p-1 text-sm font-semibold">
                         {["login", "register"].map((m) => (
-                            <button key={m} onClick={() => setMode(m)} className={`rounded-lg py-2 transition-colors ${mode === m ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"}`}>
+                            <button key={m} onClick={() => { setMode(m); clearError(); }} className={`rounded-lg py-2 transition-colors ${mode === m ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"}`}>
                                 {m === "login" ? "Sign in" : "Register"}
                             </button>
                         ))}
@@ -80,10 +101,18 @@ function AuthPage() {
                         </div>
                     </div>
 
-                    <form className="mt-5 space-y-3" onSubmit={(e) => e.preventDefault()}>
-                        {mode === "register" && (<Field label="Full name" icon={User} placeholder="Priya Sharma" type="text" />)}
-                        <Field label="Email" icon={Mail} placeholder="you@example.com" type="email" />
-                        <Field label="Password" icon={Lock} placeholder="••••••••" type="password" />
+                    {error && (
+                        <div className="mt-4 rounded-xl border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs font-medium text-destructive">
+                            {error}
+                        </div>
+                    )}
+
+                    <form className="mt-5 space-y-3" onSubmit={handleSubmit}>
+                        {mode === "register" && (
+                            <Field label="Full name" icon={User} placeholder="Priya Sharma" type="text" value={fullName} onChange={(e) => setFullName(e.target.value)} required />
+                        )}
+                        <Field label="Email" icon={Mail} placeholder="you@example.com" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+                        <Field label="Password" icon={Lock} placeholder="••••••••" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
                         {mode === "login" && (
                             <div className="flex items-center justify-between text-xs">
                                 <label className="flex items-center gap-2 text-muted-foreground">
@@ -92,9 +121,17 @@ function AuthPage() {
                                 <a href="#" className="font-semibold text-primary hover:underline">Forgot password?</a>
                             </div>
                         )}
-                        <Link to="/dashboard" className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-xl gradient-primary px-4 py-3 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/30 transition-transform hover:scale-[1.01]">
-                            {mode === "login" ? "Sign in" : "Create account"} <ArrowRight className="h-4 w-4" />
-                        </Link>
+                        <button
+                            type="submit"
+                            disabled={loading}
+                            className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-xl gradient-primary px-4 py-3 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/30 transition-transform hover:scale-[1.01] disabled:opacity-50 disabled:pointer-events-none"
+                        >
+                            {loading ? (
+                                <><Loader2 className="h-4 w-4 animate-spin" /> Please wait…</>
+                            ) : (
+                                <>{mode === "login" ? "Sign in" : "Create account"} <ArrowRight className="h-4 w-4" /></>
+                            )}
+                        </button>
                     </form>
 
                     <div className="mt-5 text-center text-xs text-muted-foreground">

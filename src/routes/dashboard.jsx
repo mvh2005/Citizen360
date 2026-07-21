@@ -1,7 +1,10 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { motion } from "motion/react";
-import { LayoutDashboard, FilePlus2, FileText, Bell, Map as MapIcon, User, Settings, LogOut, ShieldCheck, Search, ArrowLeft, CheckCircle2, Clock, AlertCircle, TrendingUp } from "lucide-react";
+import { useEffect, useState } from "react";
+import { LayoutDashboard, FilePlus2, FileText, Bell, Map as MapIcon, User, Settings, LogOut, ShieldCheck, Search, ArrowLeft, CheckCircle2, Clock, AlertCircle, TrendingUp, Loader2 } from "lucide-react";
 import { AreaChart, Area, ResponsiveContainer, XAxis, YAxis, Tooltip, PieChart, Pie, Cell, Legend } from "recharts";
+import { useAuth } from "../hooks/useAuth";
+import * as api from "../lib/api";
 
 export const Route = createFileRoute("/dashboard")({
     head: () => ({
@@ -13,30 +16,58 @@ export const Route = createFileRoute("/dashboard")({
     component: Dashboard,
 });
 
-const monthly = [
-    { m: "Jan", v: 24 }, { m: "Feb", v: 32 }, { m: "Mar", v: 28 }, { m: "Apr", v: 41 },
-    { m: "May", v: 38 }, { m: "Jun", v: 52 }, { m: "Jul", v: 47 },
-];
-const pieData = [
-    { name: "Roads", value: 34 },
-    { name: "Sanitation", value: 22 },
-    { name: "Water", value: 15 },
-    { name: "Electricity", value: 18 },
-    { name: "Drainage", value: 11 },
-];
 const PIE_COLORS = ["oklch(0.55 0.22 258)", "oklch(0.72 0.17 152)", "oklch(0.65 0.18 200)", "oklch(0.77 0.16 65)", "oklch(0.60 0.20 300)"];
 
-const complaints = [
-    { id: "CT-2087", title: "Pothole on MG Road", dept: "Roads", status: "In Progress", date: "12 Jul" },
-    { id: "CT-2064", title: "Overflowing bin near park", dept: "Sanitation", status: "Resolved", date: "10 Jul" },
-    { id: "CT-2041", title: "Streetlight not working", dept: "Electricity", status: "Assigned", date: "09 Jul" },
-    { id: "CT-2019", title: "Water leakage on Block C", dept: "Water", status: "Pending", date: "07 Jul" },
-];
+const STATUS_MAP = {
+    PENDING: "Pending",
+    ASSIGNED: "Assigned",
+    IN_PROGRESS: "In Progress",
+    RESOLVED: "Resolved",
+    REJECTED: "Rejected",
+};
 
 function Dashboard() {
+    const { user, isAuthenticated, logout } = useAuth();
+    const navigate = useNavigate();
+    const [dashboard, setDashboard] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+
+    useEffect(() => {
+        if (!isAuthenticated) {
+            navigate({ to: "/auth" });
+            return;
+        }
+        loadDashboard();
+    }, [isAuthenticated]);
+
+    async function loadDashboard() {
+        try {
+            setLoading(true);
+            const data = await api.getDashboard();
+            setDashboard(data);
+        } catch (err) {
+            setError(err.message);
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-background flex items-center justify-center">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+        );
+    }
+
+    const monthly = dashboard?.monthly?.map((m) => ({ m: m.month, v: m.count })) || [];
+    const pieData = dashboard?.categories?.map((c) => ({ name: c.name, value: c.value })) || [];
+    const complaints = dashboard?.recentComplaints || [];
+
     return (
         <div className="min-h-screen bg-background">
-            <Sidebar />
+            <Sidebar user={user} onLogout={() => { logout(); navigate({ to: "/" }); }} />
             <div className="lg:pl-64">
                 <TopNav />
                 <main className="mx-auto max-w-7xl px-4 py-8">
@@ -44,7 +75,7 @@ function Dashboard() {
                         <div className="flex flex-wrap items-end justify-between gap-4">
                             <div>
                                 <div className="text-xs font-medium uppercase tracking-widest text-muted-foreground">Welcome back</div>
-                                <h1 className="text-2xl font-extrabold sm:text-3xl">Priya Sharma</h1>
+                                <h1 className="text-2xl font-extrabold sm:text-3xl">{user?.fullName || "User"}</h1>
                             </div>
                             <Link to="/report" className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow-md hover:bg-primary/90">
                                 <FilePlus2 className="h-4 w-4" /> New Complaint
@@ -52,11 +83,15 @@ function Dashboard() {
                         </div>
                     </motion.div>
 
+                    {error && (
+                        <div className="mt-4 rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">{error}</div>
+                    )}
+
                     <div className="mt-6 grid grid-cols-2 gap-4 md:grid-cols-4">
-                        <StatCard icon={FileText} label="Total Complaints" value="12" tint="text-primary bg-primary/10" trend="+3" />
-                        <StatCard icon={Clock} label="Pending" value="2" tint="text-muted-foreground bg-muted" />
-                        <StatCard icon={AlertCircle} label="In Progress" value="3" tint="text-warning bg-warning/15" />
-                        <StatCard icon={CheckCircle2} label="Resolved" value="7" tint="text-success bg-success/15" trend="+2" />
+                        <StatCard icon={FileText} label="Total Complaints" value={String(dashboard?.totalComplaints || 0)} tint="text-primary bg-primary/10" />
+                        <StatCard icon={Clock} label="Pending" value={String(dashboard?.pending || 0)} tint="text-muted-foreground bg-muted" />
+                        <StatCard icon={AlertCircle} label="In Progress" value={String(dashboard?.inProgress || 0)} tint="text-warning bg-warning/15" />
+                        <StatCard icon={CheckCircle2} label="Resolved" value={String(dashboard?.resolved || 0)} tint="text-success bg-success/15" />
                     </div>
 
                     <div className="mt-6 grid gap-6 lg:grid-cols-[1.6fr_1fr]">
@@ -64,39 +99,49 @@ function Dashboard() {
                             <div className="flex items-center justify-between">
                                 <div>
                                     <div className="text-sm font-bold">Monthly Complaints</div>
-                                    <div className="text-xs text-muted-foreground">Last 7 months</div>
+                                    <div className="text-xs text-muted-foreground">This year</div>
                                 </div>
-                                <div className="inline-flex items-center gap-1 rounded-full bg-success/15 px-2 py-1 text-[10px] font-semibold text-success"><TrendingUp className="h-3 w-3" /> +18%</div>
+                                {monthly.length > 1 && (
+                                    <div className="inline-flex items-center gap-1 rounded-full bg-success/15 px-2 py-1 text-[10px] font-semibold text-success"><TrendingUp className="h-3 w-3" /> Trend</div>
+                                )}
                             </div>
                             <div className="mt-4 h-64">
-                                <ResponsiveContainer>
-                                    <AreaChart data={monthly}>
-                                        <defs>
-                                            <linearGradient id="g1" x1="0" x2="0" y1="0" y2="1">
-                                                <stop offset="0%" stopColor="oklch(0.55 0.22 258)" stopOpacity={0.5} />
-                                                <stop offset="100%" stopColor="oklch(0.55 0.22 258)" stopOpacity={0} />
-                                            </linearGradient>
-                                        </defs>
-                                        <XAxis dataKey="m" tickLine={false} axisLine={false} fontSize={11} />
-                                        <YAxis tickLine={false} axisLine={false} fontSize={11} />
-                                        <Tooltip contentStyle={{ borderRadius: 12, border: "1px solid var(--color-border)", background: "var(--color-card)" }} />
-                                        <Area type="monotone" dataKey="v" stroke="oklch(0.55 0.22 258)" strokeWidth={2.5} fill="url(#g1)" />
-                                    </AreaChart>
-                                </ResponsiveContainer>
+                                {monthly.length > 0 ? (
+                                    <ResponsiveContainer>
+                                        <AreaChart data={monthly}>
+                                            <defs>
+                                                <linearGradient id="g1" x1="0" x2="0" y1="0" y2="1">
+                                                    <stop offset="0%" stopColor="oklch(0.55 0.22 258)" stopOpacity={0.5} />
+                                                    <stop offset="100%" stopColor="oklch(0.55 0.22 258)" stopOpacity={0} />
+                                                </linearGradient>
+                                            </defs>
+                                            <XAxis dataKey="m" tickLine={false} axisLine={false} fontSize={11} />
+                                            <YAxis tickLine={false} axisLine={false} fontSize={11} />
+                                            <Tooltip contentStyle={{ borderRadius: 12, border: "1px solid var(--color-border)", background: "var(--color-card)" }} />
+                                            <Area type="monotone" dataKey="v" stroke="oklch(0.55 0.22 258)" strokeWidth={2.5} fill="url(#g1)" />
+                                        </AreaChart>
+                                    </ResponsiveContainer>
+                                ) : (
+                                    <div className="grid h-full place-items-center text-sm text-muted-foreground">No monthly data yet</div>
+                                )}
                             </div>
                         </div>
                         <div className="rounded-3xl border border-border bg-card p-5 shadow-sm">
                             <div className="text-sm font-bold">By Category</div>
                             <div className="text-xs text-muted-foreground">Distribution</div>
                             <div className="mt-4 h-64">
-                                <ResponsiveContainer>
-                                    <PieChart>
-                                        <Pie data={pieData} dataKey="value" innerRadius={45} outerRadius={80} paddingAngle={2}>
-                                            {pieData.map((_, i) => (<Cell key={i} fill={PIE_COLORS[i]} />))}
-                                        </Pie>
-                                        <Legend iconType="circle" wrapperStyle={{ fontSize: 11 }} />
-                                    </PieChart>
-                                </ResponsiveContainer>
+                                {pieData.length > 0 ? (
+                                    <ResponsiveContainer>
+                                        <PieChart>
+                                            <Pie data={pieData} dataKey="value" innerRadius={45} outerRadius={80} paddingAngle={2}>
+                                                {pieData.map((_, i) => (<Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />))}
+                                            </Pie>
+                                            <Legend iconType="circle" wrapperStyle={{ fontSize: 11 }} />
+                                        </PieChart>
+                                    </ResponsiveContainer>
+                                ) : (
+                                    <div className="grid h-full place-items-center text-sm text-muted-foreground">No categories yet</div>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -118,15 +163,17 @@ function Dashboard() {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {complaints.map((c) => (
-                                        <tr key={c.id} className="border-t border-border hover:bg-muted/40">
-                                            <td className="px-5 py-3 font-mono text-xs">#{c.id}</td>
+                                    {complaints.length > 0 ? complaints.map((c) => (
+                                        <tr key={c.complaintId} className="border-t border-border hover:bg-muted/40 cursor-pointer" onClick={() => navigate({ to: "/track", search: { id: c.complaintId } })}>
+                                            <td className="px-5 py-3 font-mono text-xs">#{c.complaintId}</td>
                                             <td className="px-5 py-3 font-medium">{c.title}</td>
-                                            <td className="px-5 py-3 text-muted-foreground">{c.dept}</td>
-                                            <td className="px-5 py-3"><StatusBadge s={c.status} /></td>
-                                            <td className="px-5 py-3 text-muted-foreground">{c.date}</td>
+                                            <td className="px-5 py-3 text-muted-foreground">{c.department || c.category}</td>
+                                            <td className="px-5 py-3"><StatusBadge s={STATUS_MAP[c.status] || c.status} /></td>
+                                            <td className="px-5 py-3 text-muted-foreground">{c.createdAt ? new Date(c.createdAt).toLocaleDateString("en-IN", { day: "2-digit", month: "short" }) : ""}</td>
                                         </tr>
-                                    ))}
+                                    )) : (
+                                        <tr><td colSpan={5} className="px-5 py-8 text-center text-muted-foreground">No complaints yet. Submit your first one!</td></tr>
+                                    )}
                                 </tbody>
                             </table>
                         </div>
@@ -136,13 +183,12 @@ function Dashboard() {
         </div>
     );
 }
-function StatCard({ icon: Icon, label, value, tint, trend }) {
+function StatCard({ icon: Icon, label, value, tint }) {
     return (
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="rounded-3xl border border-border bg-card p-5 shadow-sm">
             <div className={`inline-grid h-10 w-10 place-items-center rounded-xl ${tint}`}><Icon className="h-5 w-5" /></div>
             <div className="mt-3 flex items-baseline gap-2">
                 <div className="text-2xl font-extrabold">{value}</div>
-                {trend && <div className="text-[10px] font-semibold text-success">{trend}</div>}
             </div>
             <div className="text-xs text-muted-foreground">{label}</div>
         </motion.div>
@@ -159,7 +205,7 @@ function StatusBadge({ s }) {
     return <span className={`inline-flex rounded-full px-2 py-1 text-[10px] font-semibold ${map[s] || "bg-muted"}`}>{s}</span>;
 }
 
-function Sidebar() {
+function Sidebar({ user, onLogout }) {
     const items = [
         { icon: LayoutDashboard, label: "Dashboard", to: "/dashboard", active: true },
         { icon: FilePlus2, label: "New Complaint", to: "/report" },
@@ -184,9 +230,9 @@ function Sidebar() {
                         <i.icon className="h-4 w-4" /> {i.label}
                     </Link>
                 ))}
-                <Link to="/" className="mt-4 flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground">
+                <button onClick={onLogout} className="mt-4 flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground">
                     <LogOut className="h-4 w-4" /> Logout
-                </Link>
+                </button>
             </nav>
         </aside>
     );
@@ -208,7 +254,9 @@ function TopNav() {
                         <Bell className="h-4 w-4" />
                         <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-destructive" />
                     </button>
-                    <div className="grid h-9 w-9 place-items-center rounded-full bg-primary text-xs font-bold text-primary-foreground">PS</div>
+                    <div className="grid h-9 w-9 place-items-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
+                        {api.getCurrentUser()?.fullName?.split(" ").map(p => p[0]).join("") || "U"}
+                    </div>
                 </div>
             </div>
         </header>

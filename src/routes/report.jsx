@@ -1,7 +1,9 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { motion } from "motion/react";
-import { useRef, useState } from "react";
-import { ArrowLeft, Camera, MapPin, Upload, Sparkles, CheckCircle2, Send, X } from "lucide-react";
+import { useRef, useState, useEffect } from "react";
+import { ArrowLeft, Camera, MapPin, Upload, Sparkles, CheckCircle2, Send, X, Loader2 } from "lucide-react";
+import { useAuth } from "../hooks/useAuth";
+import * as api from "../lib/api";
 
 export const Route = createFileRoute("/report")({
     head: () => ({
@@ -29,7 +31,19 @@ function ReportPage() {
     const [priority, setPriority] = useState("medium");
     const [submitted, setSubmitted] = useState(null);
     const [location, setLocation] = useState("");
+    const [latitude, setLatitude] = useState(null);
+    const [longitude, setLongitude] = useState(null);
+    const [submitting, setSubmitting] = useState(false);
+    const [error, setError] = useState(null);
     const fileInput = useRef(null);
+    const { isAuthenticated } = useAuth();
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        if (!isAuthenticated) {
+            navigate({ to: "/auth" });
+        }
+    }, [isAuthenticated]);
 
     const onFiles = (files) => {
         if (!files) return;
@@ -59,32 +73,54 @@ function ReportPage() {
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(
                 (position) => {
-                    const { latitude, longitude } = position.coords;
-                    setLocation(`Sector 42, Block C, New Delhi (${latitude.toFixed(4)}° N, ${longitude.toFixed(4)}° E)`);
+                    const { latitude: lat, longitude: lng } = position.coords;
+                    setLatitude(lat);
+                    setLongitude(lng);
+                    setLocation(`Sector 42, Block C, New Delhi (${lat.toFixed(4)}° N, ${lng.toFixed(4)}° E)`);
                 },
                 () => {
                     // Fallback if permission denied
+                    setLatitude(28.5355);
+                    setLongitude(77.3910);
                     setTimeout(() => setLocation("Sector 42, Block C, New Delhi (28.5355° N, 77.3910° E)"), 700);
                 }
             );
         } else {
+            setLatitude(28.5355);
+            setLongitude(77.3910);
             setTimeout(() => setLocation("Sector 42, Block C, New Delhi (28.5355° N, 77.3910° E)"), 700);
         }
     };
 
-    const onSubmit = (e) => {
+    const onSubmit = async (e) => {
         e.preventDefault();
+        setError(null);
+        setSubmitting(true);
 
-        // In a real application, you would construct FormData here:
-        // const formData = new FormData();
-        // formData.append('title', title);
-        // images.forEach(img => formData.append('files', img.file));
+        try {
+            const complaintData = {
+                title,
+                description,
+                category,
+                priority,
+                location,
+                latitude,
+                longitude,
+            };
 
-        setSubmitted({
-            id: `CT-${Math.floor(1000 + Math.random() * 9000)}`,
-            eta: "18h 42m",
-            dept: `${category === "Garbage" ? "Sanitation" : "Roads"} Department`
-        });
+            const imageFiles = images.map((img) => img.file);
+            const response = await api.createComplaint(complaintData, imageFiles);
+
+            setSubmitted({
+                id: response.complaintId,
+                eta: "18h 42m",
+                dept: response.department || `${category} Department`,
+            });
+        } catch (err) {
+            setError(err.message);
+        } finally {
+            setSubmitting(false);
+        }
     };
 
     return (
@@ -98,6 +134,12 @@ function ReportPage() {
                         <div className="text-xs font-medium uppercase tracking-widest text-primary">Report an issue</div>
                         <h1 className="mt-1 text-2xl font-extrabold sm:text-3xl">Tell us what's wrong</h1>
                         <p className="mt-1 text-sm text-muted-foreground">Add a photo and location for the fastest resolution.</p>
+
+                        {error && (
+                            <div className="mt-4 rounded-xl border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs font-medium text-destructive">
+                                {error}
+                            </div>
+                        )}
 
                         <div className="mt-6 space-y-5">
                             <Field
@@ -201,8 +243,16 @@ function ReportPage() {
                                 </div>
                             </div>
 
-                            <button type="submit" className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-bold text-primary-foreground shadow-lg transition-transform hover:scale-[1.01]">
-                                <Send className="h-4 w-4" /> Submit Complaint
+                            <button
+                                type="submit"
+                                disabled={submitting}
+                                className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-bold text-primary-foreground shadow-lg transition-transform hover:scale-[1.01] disabled:opacity-50 disabled:pointer-events-none"
+                            >
+                                {submitting ? (
+                                    <><Loader2 className="h-4 w-4 animate-spin" /> Submitting…</>
+                                ) : (
+                                    <><Send className="h-4 w-4" /> Submit Complaint</>
+                                )}
                             </button>
                         </div>
                     </motion.form>
@@ -257,7 +307,7 @@ function SuccessCard({ data }) {
                 <Link to="/track" className="inline-flex items-center justify-center rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground shadow-lg hover:bg-primary/90">
                     Track this complaint
                 </Link>
-                <Link to="/report" className="inline-flex items-center justify-center rounded-xl border border-border bg-card px-4 py-3 text-sm font-semibold text-foreground hover:bg-muted">
+                <Link to="/report" onClick={() => window.location.reload()} className="inline-flex items-center justify-center rounded-xl border border-border bg-card px-4 py-3 text-sm font-semibold text-foreground hover:bg-muted">
                     Submit another complaint
                 </Link>
             </div>
