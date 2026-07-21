@@ -17,6 +17,9 @@ INSERT INTO users (full_name, email, password, role, approved, created_at)
 SELECT 'Admin User', 'admin@citizen360.com', '$2a$10$gsYprNdHFvnnNyzFtHJ5/.Die7MW35aHXmVSyvBeWzd0qYbhy3WMe', 'ADMIN', true, NOW()
 FROM dual WHERE NOT EXISTS (SELECT 1 FROM users WHERE email = 'admin@citizen360.com');
 
+-- Ensure the existing admin account is approved (in case it was created before the approved column was added)
+UPDATE users SET approved = true WHERE email = 'admin@citizen360.com';
+
 -- Insert sample complaints only if table is empty
 INSERT INTO complaints (complaint_id, title, description, category, priority, status, location, latitude, longitude, user_id, assigned_officer_id, created_at, updated_at)
 SELECT 'CT-2087', 'Pothole on MG Road', 'Large pothole near sector 42 intersection causing traffic issues.', 'Road Damage', 'HIGH', 'IN_PROGRESS', 'Sector 42, MG Road, New Delhi', 28.5355, 77.3910,

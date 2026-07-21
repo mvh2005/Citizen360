@@ -51,7 +51,11 @@ public class AuthService {
             throw new RuntimeException("Invalid email or password");
         }
 
-        if (!user.isApproved()) {
+        if (!user.getRole().name().equalsIgnoreCase(request.getRole())) {
+            throw new RuntimeException("Account not found for the selected role.");
+        }
+
+        if (user.getRole() == Role.OFFICER && !user.isApproved()) {
             throw new RuntimeException("Your officer account is pending administrator approval.");
         }
 

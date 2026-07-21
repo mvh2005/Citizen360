@@ -4,6 +4,37 @@ import { useRef, useState, useEffect } from "react";
 import { ArrowLeft, Camera, MapPin, Upload, Sparkles, CheckCircle2, Send, X, Loader2 } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
 import * as api from "../lib/api";
+import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from "react-leaflet";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
+
+// Fix Leaflet's default icon path issues with Webpack/Vite
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
+  iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+});
+
+function LocationMarker({ position, setPosition, setLocation }) {
+    useMapEvents({
+        click(e) {
+            setPosition([e.latlng.lat, e.latlng.lng]);
+            setLocation(`Lat: ${e.latlng.lat.toFixed(4)}, Lng: ${e.latlng.lng.toFixed(4)}`);
+        },
+    });
+    return position === null ? null : <Marker position={position}></Marker>;
+}
+
+function MapUpdater({ center }) {
+    const map = useMap();
+    useEffect(() => {
+        if (center) {
+            map.flyTo(center, map.getZoom());
+        }
+    }, [center, map]);
+    return null;
+}
 
 export const Route = createFileRoute("/report")({
     head: () => ({
@@ -236,10 +267,19 @@ function ReportPage() {
                                         <MapPin className="h-4 w-4" /> Use GPS
                                     </button>
                                 </div>
-                                <div className="mt-3 h-48 overflow-hidden rounded-2xl border border-border bg-muted [background-image:linear-gradient(rgba(0,0,0,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.05)_1px,transparent_1px)] [background-size:32px_32px]">
-                                    <div className="grid h-full w-full place-items-center text-xs text-muted-foreground">
-                                        <div className="flex items-center gap-2"><MapPin className="h-4 w-4 text-primary" /> Interactive map (tap to drop pin)</div>
-                                    </div>
+                                <div className="mt-3 h-64 overflow-hidden rounded-2xl border border-border bg-card z-0">
+                                    <MapContainer center={latitude ? [latitude, longitude] : [28.5355, 77.3910]} zoom={13} scrollWheelZoom={false} style={{ height: "100%", width: "100%", zIndex: 0 }}>
+                                        <TileLayer
+                                            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>'
+                                            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                                        />
+                                        <LocationMarker 
+                                            position={latitude ? [latitude, longitude] : null} 
+                                            setPosition={(pos) => { setLatitude(pos[0]); setLongitude(pos[1]); }} 
+                                            setLocation={setLocation} 
+                                        />
+                                        {latitude && <MapUpdater center={[latitude, longitude]} />}
+                                    </MapContainer>
                                 </div>
                             </div>
 

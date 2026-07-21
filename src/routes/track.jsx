@@ -1,8 +1,20 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion } from "motion/react";
 import { useState, useEffect } from "react";
-import { ArrowLeft, Search, MessageCircle, Download, Image as ImageIcon, Plus, CheckCircle2, Clock, Loader2, AlertCircle } from "lucide-react";
+import { ArrowLeft, Search, Download, CheckCircle2, Clock, Loader2, AlertCircle } from "lucide-react";
 import * as api from "../lib/api";
+import html2pdf from "html2pdf.js";
+import { MapContainer, TileLayer, Marker } from "react-leaflet";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
+
+// Fix Leaflet's default icon path issues
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
+  iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+});
 
 export const Route = createFileRoute("/track")({
     validateSearch: (search) => ({
@@ -108,6 +120,20 @@ function TrackPage() {
     const timeline = buildTimeline();
     const statusInfo = complaint ? (STATUS_DISPLAY[complaint.status] || STATUS_DISPLAY.PENDING) : null;
 
+    const handleDownloadPdf = () => {
+        const element = document.getElementById("complaint-content");
+        if (!element) return;
+        
+        const opt = {
+            margin:       10,
+            filename:     `Complaint_${complaint.complaintId}.pdf`,
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 2, useCORS: true },
+            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+        html2pdf().set(opt).from(element).save();
+    };
+
     return (
         <div className="min-h-screen bg-background">
             <header className="fixed inset-x-0 top-0 z-40 border-b border-border/60 bg-background/70 backdrop-blur-xl">
@@ -148,7 +174,7 @@ function TrackPage() {
                 )}
 
                 {complaint && !loading && (
-                    <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="mt-6 grid gap-6 lg:grid-cols-[1.5fr_1fr]">
+                    <motion.div id="complaint-content" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="mt-6 grid gap-6 lg:grid-cols-[1.5fr_1fr]">
                         <div className="rounded-3xl border border-border bg-card p-6 shadow-sm">
                             <div className="flex items-center justify-between">
                                 <div className="min-w-0">
@@ -181,16 +207,28 @@ function TrackPage() {
                                     </li>
                                 ))}
                             </ol>
+
+                            {complaint.imageUrls && complaint.imageUrls.length > 0 && (
+                                <div className="mt-6 border-t border-border pt-6">
+                                    <div className="text-sm font-bold">Attached Images</div>
+                                    <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-3">
+                                        {complaint.imageUrls.map((url, i) => (
+                                            <div key={i} className="aspect-square overflow-hidden rounded-xl border border-border bg-muted">
+                                                <img src={api.getFileUrl(url)} alt={`Complaint Image ${i + 1}`} className="h-full w-full object-cover" />
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
                         </div>
 
                         <div className="space-y-4">
                             <div className="rounded-3xl border border-border bg-card p-5">
                                 <div className="text-sm font-bold">Actions</div>
-                                <div className="mt-3 grid grid-cols-2 gap-2">
-                                    <ActionBtn icon={ImageIcon} label="View Images" />
-                                    <ActionBtn icon={Download} label="Receipt PDF" />
-                                    <ActionBtn icon={MessageCircle} label="Chat Officer" />
-                                    <ActionBtn icon={Plus} label="Add Images" />
+                                <div className="mt-3">
+                                    <button onClick={handleDownloadPdf} className="flex w-full items-center justify-center gap-2 rounded-xl border border-border bg-background px-3 py-2.5 text-xs font-semibold hover:bg-muted">
+                                        <Download className="h-4 w-4 text-primary" /> Download Receipt PDF
+                                    </button>
                                 </div>
                             </div>
                             <div className="rounded-3xl border border-border bg-card p-5">
@@ -208,7 +246,18 @@ function TrackPage() {
                             {complaint.location && (
                                 <div className="rounded-3xl border border-border bg-card p-5">
                                     <div className="text-sm font-bold">Location</div>
-                                    <div className="mt-2 text-xs text-muted-foreground">{complaint.location}</div>
+                                    <div className="mt-2 mb-3 text-xs text-muted-foreground">{complaint.location}</div>
+                                    {complaint.latitude && complaint.longitude && (
+                                        <div className="h-40 overflow-hidden rounded-xl border border-border z-0 relative">
+                                            <MapContainer center={[complaint.latitude, complaint.longitude]} zoom={15} scrollWheelZoom={false} style={{ height: "100%", width: "100%", zIndex: 0 }}>
+                                                <TileLayer
+                                                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>'
+                                                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                                                />
+                                                <Marker position={[complaint.latitude, complaint.longitude]} />
+                                            </MapContainer>
+                                        </div>
+                                    )}
                                 </div>
                             )}
                         </div>

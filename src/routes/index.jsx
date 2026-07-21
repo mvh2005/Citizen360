@@ -44,7 +44,6 @@ function Index() {
         <div className="min-h-screen bg-background text-foreground">
             <Navbar />
             <Hero />
-            <Stats />
             <Features />
             <Departments />
             <HowItWorks />
@@ -56,6 +55,7 @@ function Index() {
 }
 
 function Navbar() {
+    const { isAuthenticated, logout } = useAuth();
     const [open, setOpen] = useState(false);
     const [dark, setDark] = useState(false);
     const [scrolled, setScrolled] = useState(false);
@@ -210,29 +210,7 @@ function Hero() {
     );
 }
 
-function Stats() {
-    const items = [
-        { label: "Total Complaints", value: "128,430", icon: FileText, tint: "text-primary bg-primary/10" },
-        { label: "Resolved Issues", value: "112,879", icon: CheckCircle2, tint: "text-success bg-success/10" },
-        { label: "Active Users", value: "48,201", icon: Users, tint: "text-warning bg-warning/10" },
-        { label: "Avg. Resolution Time", value: "18h 42m", icon: Clock, tint: "text-primary bg-primary/10" },
-    ];
-    return (
-        <section className="relative -mt-8 pb-8">
-            <div className="mx-auto max-w-7xl px-4">
-                <div className="glass-strong grid grid-cols-2 gap-4 rounded-3xl p-4 shadow-xl md:grid-cols-4 md:p-6">
-                    {items.map((it, i) => (
-                        <motion.div key={it.label} initial={{ opacity: 0, y: 14 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.08 }} className="rounded-2xl border border-border bg-card p-4">
-                            <div className={`inline-grid h-10 w-10 place-items-center rounded-xl ${it.tint}`}><it.icon className="h-5 w-5" /></div>
-                            <div className="mt-3 text-2xl font-extrabold tracking-tight md:text-3xl">{it.value}</div>
-                            <div className="text-xs text-muted-foreground md:text-sm">{it.label}</div>
-                        </motion.div>
-                    ))}
-                </div>
-            </div>
-        </section>
-    );
-}
+
 
 function Features() {
     const feats = [
