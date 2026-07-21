@@ -20,8 +20,14 @@ function AuthPage() {
     const [fullName, setFullName] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-    const { login, register, loading, error, clearError } = useAuth();
+    const { login, register, loading, error, clearError, isAuthenticated } = useAuth();
     const navigate = useNavigate();
+
+    useEffect(() => {
+        if (isAuthenticated) {
+            navigate({ to: "/dashboard" });
+        }
+    }, [isAuthenticated]);
 
     const roles = [
         { id: "citizen", label: "Citizen", desc: "Report and track", icon: User },

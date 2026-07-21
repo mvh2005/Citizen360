@@ -33,6 +33,8 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import heroImage from "../assets/download.jpg";
+import { useAuth } from "../hooks/useAuth";
+
 export const Route = createFileRoute("/")({
     component: Index,
 });
@@ -101,12 +103,25 @@ function Navbar() {
                         <button onClick={() => setDark((d) => !d)} aria-label="Toggle theme" className="grid h-9 w-9 place-items-center rounded-lg border border-border bg-card text-muted-foreground transition-colors hover:text-foreground">
                             {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
                         </button>
-                        <Link to="/auth" className="hidden rounded-lg border border-border bg-card px-3 py-2 text-sm font-semibold text-foreground transition-colors hover:bg-muted md:inline-flex">
-                            Login
-                        </Link>
-                        <Link to="/auth" className="hidden rounded-lg gradient-primary px-3 py-2 text-sm font-semibold text-primary-foreground shadow-md shadow-primary/30 transition-transform hover:scale-[1.02] md:inline-flex">
-                            Register
-                        </Link>
+                        {isAuthenticated ? (
+                            <>
+                                <Link to="/dashboard" className="hidden rounded-lg bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground shadow-md shadow-primary/30 transition-transform hover:scale-[1.02] md:inline-flex">
+                                    Dashboard
+                                </Link>
+                                <button onClick={() => logout()} className="hidden rounded-lg border border-border bg-card px-3 py-2 text-sm font-semibold text-foreground transition-colors hover:bg-muted md:inline-flex cursor-pointer">
+                                    Logout
+                                </button>
+                            </>
+                        ) : (
+                            <>
+                                <Link to="/auth" className="hidden rounded-lg border border-border bg-card px-3 py-2 text-sm font-semibold text-foreground transition-colors hover:bg-muted md:inline-flex">
+                                    Login
+                                </Link>
+                                <Link to="/auth" className="hidden rounded-lg gradient-primary px-3 py-2 text-sm font-semibold text-primary-foreground shadow-md shadow-primary/30 transition-transform hover:scale-[1.02] md:inline-flex">
+                                    Register
+                                </Link>
+                            </>
+                        )}
                         <button onClick={() => setOpen((o) => !o)} className="grid h-9 w-9 place-items-center rounded-lg border border-border bg-card md:hidden" aria-label="Menu">
                             {open ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
                         </button>
@@ -120,8 +135,17 @@ function Navbar() {
                             </a>
                         ))}
                         <div className="mt-2 grid grid-cols-2 gap-2">
-                            <Link to="/auth" className="rounded-lg border border-border bg-card px-3 py-2 text-center text-sm font-semibold">Login</Link>
-                            <Link to="/auth" className="rounded-lg gradient-primary px-3 py-2 text-center text-sm font-semibold text-primary-foreground">Register</Link>
+                            {isAuthenticated ? (
+                                <>
+                                    <Link to="/dashboard" className="rounded-lg bg-primary py-2 text-center text-sm font-semibold text-primary-foreground">Dashboard</Link>
+                                    <button onClick={() => { logout(); setOpen(false); }} className="rounded-lg border border-border bg-card py-2 text-center text-sm font-semibold cursor-pointer">Logout</button>
+                                </>
+                            ) : (
+                                <>
+                                    <Link to="/auth" className="rounded-lg border border-border bg-card py-2 text-center text-sm font-semibold">Login</Link>
+                                    <Link to="/auth" className="rounded-lg gradient-primary py-2 text-center text-sm font-semibold text-primary-foreground">Register</Link>
+                                </>
+                            )}
                         </div>
                     </div>
                 )}

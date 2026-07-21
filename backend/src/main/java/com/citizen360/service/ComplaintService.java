@@ -150,4 +150,72 @@ public class ComplaintService {
             default -> "General Department";
         };
     }
+
+    public List<ComplaintResponse> getAllComplaints() {
+        return complaintRepository.findAllByOrderByCreatedAtDesc()
+                .stream()
+                .map(c -> toResponse(c, mapCategoryToDepartment(c.getCategory())))
+                .collect(Collectors.toList());
+    }
+
+    public List<ComplaintResponse> getComplaintsByOfficer(Long officerId) {
+        return complaintRepository.findByAssignedOfficerIdOrderByCreatedAtDesc(officerId)
+                .stream()
+                .map(c -> toResponse(c, mapCategoryToDepartment(c.getCategory())))
+                .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public ComplaintResponse assignOfficer(String complaintId, Long officerId) {
+        Complaint complaint = complaintRepository.findByComplaintId(complaintId)
+                .orElseThrow(() -> new RuntimeException("Complaint not found: " + complaintId));
+
+        User officer = userRepository.findById(officerId)
+                .orElseThrow(() -> new RuntimeException("Officer not found: " + officerId));
+
+        complaint.setAssignedOfficer(officer);
+        complaint.setStatus(ComplaintStatus.ASSIGNED);
+
+        ComplaintTimeline timeline = new ComplaintTimeline(
+                complaint,
+                "Assigned to Officer",
+                "Complaint has been assigned to " + officer.getFullName() + " for resolution.",
+                LocalDateTime.now()
+        );
+        timelineRepository.save(timeline);
+
+        complaint = complaintRepository.save(complaint);
+        return toResponse(complaint, mapCategoryToDepartment(complaint.getCategory()));
+    }
+
+    @Transactional
+    public ComplaintResponse updateComplaintStatus(String complaintId, String statusStr, String note) {
+        Complaint complaint = complaintRepository.findByComplaintId(complaintId)
+                .orElseThrow(() -> new RuntimeException("Complaint not found: " + complaintId));
+
+        ComplaintStatus status = ComplaintStatus.valueOf(statusStr.toUpperCase());
+        complaint.setStatus(status);
+
+        String timelineTitle = switch (status) {
+            case IN_PROGRESS -> "Work Started";
+            case RESOLVED -> "Completed";
+            case REJECTED -> "Rejected";
+            default -> "Status Updated";
+        };
+
+        String timelineDesc = (note == null || note.trim().isEmpty())
+                ? "Complaint status has been updated to " + status.name()
+                : note;
+
+        ComplaintTimeline timeline = new ComplaintTimeline(
+                complaint,
+                timelineTitle,
+                timelineDesc,
+                LocalDateTime.now()
+        );
+        timelineRepository.save(timeline);
+
+        complaint = complaintRepository.save(complaint);
+        return toResponse(complaint, mapCategoryToDepartment(complaint.getCategory()));
+    }
 }

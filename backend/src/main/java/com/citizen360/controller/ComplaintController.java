@@ -46,9 +46,17 @@ public class ComplaintController {
     }
 
     @GetMapping
-    public ResponseEntity<List<ComplaintResponse>> getMyComplaints(Authentication auth) {
+    public ResponseEntity<List<ComplaintResponse>> getComplaints(Authentication auth) {
         Long userId = (Long) auth.getDetails();
-        return ResponseEntity.ok(complaintService.getComplaintsByUser(userId));
+        String role = auth.getAuthorities().iterator().next().getAuthority().replace("ROLE_", "");
+
+        if ("ADMIN".equals(role)) {
+            return ResponseEntity.ok(complaintService.getAllComplaints());
+        } else if ("OFFICER".equals(role)) {
+            return ResponseEntity.ok(complaintService.getComplaintsByOfficer(userId));
+        } else {
+            return ResponseEntity.ok(complaintService.getComplaintsByUser(userId));
+        }
     }
 
     @GetMapping("/{complaintId}")
@@ -57,6 +65,33 @@ public class ComplaintController {
             return ResponseEntity.ok(complaintService.getComplaintByComplaintId(complaintId));
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
+        }
+    }
+
+    @PatchMapping("/{complaintId}/assign")
+    public ResponseEntity<?> assignOfficer(
+            @PathVariable String complaintId,
+            @RequestBody Map<String, Long> body) {
+        try {
+            Long officerId = body.get("officerId");
+            ComplaintResponse response = complaintService.assignOfficer(complaintId, officerId);
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @PatchMapping("/{complaintId}/status")
+    public ResponseEntity<?> updateStatus(
+            @PathVariable String complaintId,
+            @RequestBody Map<String, String> body) {
+        try {
+            String status = body.get("status");
+            String note = body.get("note");
+            ComplaintResponse response = complaintService.updateComplaintStatus(complaintId, status, note);
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
 

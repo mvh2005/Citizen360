@@ -150,3 +150,37 @@ export async function createComplaint(complaintData, files) {
 export function getFileUrl(filename) {
     return `${API_BASE}/files/${filename}`;
 }
+
+// ─── Admin Operations ─────────────────────────────────────────────
+
+export async function getAdminOfficers() {
+    return request("/admin/officers");
+}
+
+export async function approveOfficer(officerId) {
+    return request(`/admin/officers/${officerId}/approve`, {
+        method: "PATCH",
+    });
+}
+
+export async function rejectOfficer(officerId) {
+    return request(`/admin/officers/${officerId}`, {
+        method: "DELETE",
+    });
+}
+
+// ─── Complaint Assignments & Lifecycle ───────────────────────────
+
+export async function assignComplaintOfficer(complaintId, officerId) {
+    return request(`/complaints/${complaintId}/assign`, {
+        method: "PATCH",
+        body: JSON.stringify({ officerId }),
+    });
+}
+
+export async function updateComplaintStatus(complaintId, status, note) {
+    return request(`/complaints/${complaintId}/status`, {
+        method: "PATCH",
+        body: JSON.stringify({ status, note }),
+    });
+}

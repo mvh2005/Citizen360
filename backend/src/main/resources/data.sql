@@ -5,16 +5,16 @@
 -- $2a$10$gsYprNdHFvnnNyzFtHJ5/.Die7MW35aHXmVSyvBeWzd0qYbhy3WMe
 
 -- Insert users only if the table is empty
-INSERT INTO users (full_name, email, password, role, created_at)
-SELECT 'Priya Sharma', 'priya@citizen360.com', '$2a$10$gsYprNdHFvnnNyzFtHJ5/.Die7MW35aHXmVSyvBeWzd0qYbhy3WMe', 'CITIZEN', NOW()
+INSERT INTO users (full_name, email, password, role, approved, created_at)
+SELECT 'Priya Sharma', 'priya@citizen360.com', '$2a$10$gsYprNdHFvnnNyzFtHJ5/.Die7MW35aHXmVSyvBeWzd0qYbhy3WMe', 'CITIZEN', true, NOW()
 FROM dual WHERE NOT EXISTS (SELECT 1 FROM users WHERE email = 'priya@citizen360.com');
 
-INSERT INTO users (full_name, email, password, role, created_at)
-SELECT 'Rajeev Menon', 'rajeev@citizen360.com', '$2a$10$gsYprNdHFvnnNyzFtHJ5/.Die7MW35aHXmVSyvBeWzd0qYbhy3WMe', 'OFFICER', NOW()
+INSERT INTO users (full_name, email, password, role, approved, created_at)
+SELECT 'Rajeev Menon', 'rajeev@citizen360.com', '$2a$10$gsYprNdHFvnnNyzFtHJ5/.Die7MW35aHXmVSyvBeWzd0qYbhy3WMe', 'OFFICER', true, NOW()
 FROM dual WHERE NOT EXISTS (SELECT 1 FROM users WHERE email = 'rajeev@citizen360.com');
 
-INSERT INTO users (full_name, email, password, role, created_at)
-SELECT 'Admin User', 'admin@citizen360.com', '$2a$10$gsYprNdHFvnnNyzFtHJ5/.Die7MW35aHXmVSyvBeWzd0qYbhy3WMe', 'ADMIN', NOW()
+INSERT INTO users (full_name, email, password, role, approved, created_at)
+SELECT 'Admin User', 'admin@citizen360.com', '$2a$10$gsYprNdHFvnnNyzFtHJ5/.Die7MW35aHXmVSyvBeWzd0qYbhy3WMe', 'ADMIN', true, NOW()
 FROM dual WHERE NOT EXISTS (SELECT 1 FROM users WHERE email = 'admin@citizen360.com');
 
 -- Insert sample complaints only if table is empty

@@ -5,6 +5,9 @@ import { ArrowLeft, Search, MessageCircle, Download, Image as ImageIcon, Plus, C
 import * as api from "../lib/api";
 
 export const Route = createFileRoute("/track")({
+    validateSearch: (search) => ({
+        id: search.id || "",
+    }),
     head: () => ({
         meta: [
             { title: "Track Complaint — Citizen360" },
@@ -41,19 +44,31 @@ const STATUS_DISPLAY = {
 };
 
 function TrackPage() {
-    const [query, setQuery] = useState("CT-2087");
+    const search = Route.useSearch();
+    const [query, setQuery] = useState(search.id || "");
     const [complaint, setComplaint] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [searched, setSearched] = useState(false);
 
+    useEffect(() => {
+        if (search.id) {
+            setQuery(search.id);
+            doSearchWithId(search.id);
+        }
+    }, [search.id]);
+
     const doSearch = async () => {
-        if (!query.trim()) return;
+        doSearchWithId(query);
+    };
+
+    const doSearchWithId = async (idToSearch) => {
+        if (!idToSearch || !idToSearch.trim()) return;
         setLoading(true);
         setError(null);
         setSearched(true);
         try {
-            const data = await api.getComplaint(query.trim());
+            const data = await api.getComplaint(idToSearch.trim());
             setComplaint(data);
         } catch (err) {
             setError("Complaint not found. Please check the ID and try again.");

@@ -25,6 +25,9 @@ public class User {
     @Column(nullable = false)
     private Role role;
 
+    @Column(nullable = false)
+    private boolean approved = true;
+
     @Column(updatable = false)
     private LocalDateTime createdAt;
 
@@ -36,6 +39,7 @@ public class User {
         this.email = email;
         this.password = password;
         this.role = role;
+        this.approved = true;
     }
 
     @PrePersist
@@ -58,6 +62,9 @@ public class User {
 
     public Role getRole() { return role; }
     public void setRole(Role role) { this.role = role; }
+
+    public boolean isApproved() { return approved; }
+    public void setApproved(boolean approved) { this.approved = approved; }
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }

@@ -34,6 +34,7 @@ public class AuthService {
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setRole(role);
+        user.setApproved(role != Role.OFFICER); // Officers require admin approval
 
         user = userRepository.save(user);
 
@@ -48,6 +49,10 @@ public class AuthService {
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new RuntimeException("Invalid email or password");
+        }
+
+        if (!user.isApproved()) {
+            throw new RuntimeException("Your officer account is pending administrator approval.");
         }
 
         String token = jwtUtil.generateToken(user.getEmail(), user.getRole().name(), user.getId());
