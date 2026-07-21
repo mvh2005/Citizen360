@@ -18,9 +18,18 @@ L.Icon.Default.mergeOptions({
 
 function LocationMarker({ position, setPosition, setLocation }) {
     useMapEvents({
-        click(e) {
-            setPosition([e.latlng.lat, e.latlng.lng]);
-            setLocation(`Lat: ${e.latlng.lat.toFixed(4)}, Lng: ${e.latlng.lng.toFixed(4)}`);
+        async click(e) {
+            const lat = e.latlng.lat;
+            const lng = e.latlng.lng;
+            setPosition([lat, lng]);
+            setLocation("Fetching address...");
+            try {
+                const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
+                const data = await res.json();
+                setLocation(data.display_name || `Lat: ${lat.toFixed(4)}, Lng: ${lng.toFixed(4)}`);
+            } catch (err) {
+                setLocation(`Lat: ${lat.toFixed(4)}, Lng: ${lng.toFixed(4)}`);
+            }
         },
     });
     return position === null ? null : <Marker position={position}></Marker>;
@@ -64,6 +73,8 @@ function ReportPage() {
     const [location, setLocation] = useState("");
     const [latitude, setLatitude] = useState(null);
     const [longitude, setLongitude] = useState(null);
+    const [suggestions, setSuggestions] = useState([]);
+    const [showSuggestions, setShowSuggestions] = useState(false);
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState(null);
     const fileInput = useRef(null);
@@ -75,6 +86,25 @@ function ReportPage() {
             navigate({ to: "/auth" });
         }
     }, [isAuthenticated]);
+
+    useEffect(() => {
+        if (!location || location.length < 3 || location.includes("Lat:") || location.includes("° N")) {
+            setSuggestions([]);
+            return;
+        }
+        
+        const delayDebounceFn = setTimeout(async () => {
+            try {
+                const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(location)}&limit=5`);
+                const data = await res.json();
+                setSuggestions(data);
+            } catch (err) {
+                console.error("Error fetching location suggestions:", err);
+            }
+        }, 500);
+
+        return () => clearTimeout(delayDebounceFn);
+    }, [location]);
 
     const onFiles = (files) => {
         if (!files) return;
@@ -100,6 +130,20 @@ function ReportPage() {
     const detectGPS = () => {
         setLocation("Detecting…");
 
+        const fetchAddress = async (lat, lng) => {
+            try {
+                const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
+                const data = await res.json();
+                if (data.display_name) {
+                    setLocation(data.display_name);
+                } else {
+                    setLocation(`Lat: ${lat.toFixed(4)}, Lng: ${lng.toFixed(4)}`);
+                }
+            } catch (err) {
+                setLocation(`Lat: ${lat.toFixed(4)}, Lng: ${lng.toFixed(4)}`);
+            }
+        };
+
         // Using real Geolocation API if available, falls back to mock data
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(
@@ -107,19 +151,21 @@ function ReportPage() {
                     const { latitude: lat, longitude: lng } = position.coords;
                     setLatitude(lat);
                     setLongitude(lng);
-                    setLocation(`Sector 42, Block C, New Delhi (${lat.toFixed(4)}° N, ${lng.toFixed(4)}° E)`);
+                    fetchAddress(lat, lng);
                 },
                 () => {
                     // Fallback if permission denied
-                    setLatitude(28.5355);
-                    setLongitude(77.3910);
-                    setTimeout(() => setLocation("Sector 42, Block C, New Delhi (28.5355° N, 77.3910° E)"), 700);
+                    const lat = 28.5355, lng = 77.3910;
+                    setLatitude(lat);
+                    setLongitude(lng);
+                    fetchAddress(lat, lng);
                 }
             );
         } else {
-            setLatitude(28.5355);
-            setLongitude(77.3910);
-            setTimeout(() => setLocation("Sector 42, Block C, New Delhi (28.5355° N, 77.3910° E)"), 700);
+            const lat = 28.5355, lng = 77.3910;
+            setLatitude(lat);
+            setLongitude(lng);
+            fetchAddress(lat, lng);
         }
     };
 
@@ -252,22 +298,45 @@ function ReportPage() {
 
                             <div>
                                 <label className="mb-1.5 block text-xs font-semibold">Location</label>
-                                <div className="flex flex-col gap-2 sm:flex-row">
-                                    <div className="flex flex-1 items-center gap-2 rounded-xl border border-border bg-card px-3 py-2.5">
+                                <div className="relative z-50 flex flex-col gap-2 sm:flex-row">
+                                    <div className="relative flex flex-1 items-center gap-2 rounded-xl border border-border bg-card px-3 py-2.5">
                                         <MapPin className="h-4 w-4 text-primary" />
                                         <input
                                             value={location}
-                                            onChange={(e) => setLocation(e.target.value)}
+                                            onChange={(e) => {
+                                                setLocation(e.target.value);
+                                                setShowSuggestions(true);
+                                            }}
+                                            onFocus={() => setShowSuggestions(true)}
+                                            onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
                                             placeholder="Address or landmark"
                                             className="w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
                                             required
                                         />
+                                        {showSuggestions && suggestions.length > 0 && (
+                                            <div className="absolute left-0 right-0 top-full z-50 mt-2 max-h-60 overflow-y-auto rounded-xl border border-border bg-card shadow-xl">
+                                                {suggestions.map((s, i) => (
+                                                    <div
+                                                        key={i}
+                                                        className="cursor-pointer border-b border-border px-3 py-2.5 text-sm transition-colors last:border-0 hover:bg-primary/10"
+                                                        onClick={() => {
+                                                            setLocation(s.display_name);
+                                                            setLatitude(parseFloat(s.lat));
+                                                            setLongitude(parseFloat(s.lon));
+                                                            setShowSuggestions(false);
+                                                        }}
+                                                    >
+                                                        {s.display_name}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
                                     </div>
-                                    <button type="button" onClick={detectGPS} className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow-md hover:bg-primary/90">
+                                    <button type="button" onClick={detectGPS} className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow-md transition-transform hover:scale-[1.02] active:scale-95 hover:bg-primary/90">
                                         <MapPin className="h-4 w-4" /> Use GPS
                                     </button>
                                 </div>
-                                <div className="mt-3 h-64 overflow-hidden rounded-2xl border border-border bg-card z-0">
+                                <div className="relative z-0 mt-3 h-64 overflow-hidden rounded-2xl border border-border bg-card">
                                     <MapContainer center={latitude ? [latitude, longitude] : [28.5355, 77.3910]} zoom={13} scrollWheelZoom={false} style={{ height: "100%", width: "100%", zIndex: 0 }}>
                                         <TileLayer
                                             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>'
