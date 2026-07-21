@@ -155,88 +155,150 @@ Municipal officers are then notified, assigned the task, and can update the reso
 
 ```
 Citizen360/
-├── 📄 index.html                    # Entry HTML, single-page app shell
-├── 📄 package.json                  # Frontend dependencies & npm scripts
-├── 📄 vite.config.js                # Vite build config + proxy to backend
-├── 📄 tsconfig.json                 # TypeScript configuration
+├── 📄 .gitignore
 ├── 📄 eslint.config.js              # Code quality rules
+├── 📄 index.html                    # Entry HTML, single-page app shell
+├── 📄 LICENSE
+├── 📄 package-lock.json
+├── 📄 package.json                  # Frontend dependencies & npm scripts
+├── 📄 README.md
+├── 📄 tsconfig.json                 # TypeScript configuration
+├── 📄 tsconfig.node.json
+├── 📄 vite.config.js                # Vite build config
 │
-├── 📂 src/                          # ─── FRONTEND SOURCE ─────────────────
-│   ├── 📄 main.jsx                  # App entry point, mounts React into DOM
-│   ├── 📄 App.jsx                   # Root App component
-│   ├── 📄 router.jsx                # TanStack Router configuration
-│   ├── 📄 routeTree.gen.ts          # Auto-generated route tree (do not edit)
-│   ├── 📄 styles.css / App.css      # Global styles & Tailwind imports
-│   │
-│   ├── 📂 routes/                   # Pages (each file = one URL route)
-│   │   ├── 📄 __root.jsx            # Root layout (navbar, auth wrapper)
-│   │   ├── 📄 index.jsx             # / — Landing home page
-│   │   ├── 📄 auth.jsx              # /auth — Login & Register page
-│   │   ├── 📄 report.jsx            # /report — Submit a new complaint
-│   │   ├── 📄 track.jsx             # /track — Track complaint status
-│   │   └── 📄 dashboard.jsx         # /dashboard — Officer control panel
-│   │
-│   ├── 📂 hooks/                    # Custom React hooks
-│   │   ├── 📄 useAuth.jsx           # Auth state context (login/logout/register)
-│   │   └── 📄 use-mobile.jsx        # Detects mobile viewport
-│   │
-│   ├── 📂 lib/
-│   │   └── 📄 api.js                # All fetch() calls to /api/* endpoints
-│   │
-│   └── 📂 components/
-│       └── 📂 ui/                   # Shared Radix UI + Tailwind components
+├── 📂 .project/                     # Lovable project metadata
+│   └── 📄 project.json
 │
-└── 📂 backend/                      # ─── BACKEND SOURCE ──────────────────
-    ├── 📄 pom.xml                   # Maven dependencies & build config
-    ├── 📂 uploads/                  # Uploaded complaint images stored here
+├── 📂 backend/                      # ─── BACKEND SOURCE ──────────────────
+│   ├── 📄 .gitignore
+│   ├── 📄 DbFix.class
+│   ├── 📄 DbFix.java
+│   ├── 📄 pom.xml                   # Maven dependencies & build config
+│   └── 📂 src/main/
+│       ├── 📂 java/com/citizen360/
+│       │   ├── 📄 Citizen360Application.java   # @SpringBootApplication entry
+│       │   ├── 📂 controller/               # REST API endpoints
+│       │   │   ├── 📄 AdminController.java
+│       │   │   ├── 📄 AuthController.java
+│       │   │   ├── 📄 ComplaintController.java
+│       │   │   ├── 📄 DashboardController.java
+│       │   │   └── 📄 FileController.java
+│       │   ├── 📂 dto/                      # Data Transfer Objects (request/response shapes)
+│       │   │   ├── 📄 AuthRequest.java
+│       │   │   ├── 📄 AuthResponse.java
+│       │   │   ├── 📄 ComplaintRequest.java
+│       │   │   ├── 📄 ComplaintResponse.java
+│       │   │   └── 📄 DashboardResponse.java
+│       │   ├── 📂 model/                    # JPA Entity classes (DB tables)
+│       │   │   ├── 📄 Complaint.java
+│       │   │   ├── 📄 ComplaintImage.java
+│       │   │   ├── 📄 ComplaintTimeline.java
+│       │   │   ├── 📄 User.java
+│       │   │   └── 📂 enums/
+│       │   │       ├── 📄 ComplaintStatus.java
+│       │   │       ├── 📄 Priority.java
+│       │   │       └── 📄 Role.java
+│       │   ├── 📂 repository/               # Spring Data JPA interfaces (DB queries)
+│       │   │   ├── 📄 ComplaintImageRepository.java
+│       │   │   ├── 📄 ComplaintRepository.java
+│       │   │   ├── 📄 ComplaintTimelineRepository.java
+│       │   │   └── 📄 UserRepository.java
+│       │   ├── 📂 security/                 # JWT & Spring Security config
+│       │   │   ├── 📄 JwtAuthFilter.java
+│       │   │   ├── 📄 JwtUtil.java
+│       │   │   └── 📄 SecurityConfig.java
+│       │   └── 📂 service/                  # Business logic layer
+│       │       ├── 📄 AuthService.java
+│       │       ├── 📄 ComplaintService.java
+│       │       ├── 📄 DashboardService.java
+│       │       └── 📄 FileStorageService.java
+│       └── 📂 resources/
+│           ├── 📄 application.properties  # DB URL, JWT config, server port
+│           └── 📄 data.sql                # Seed data (demo users & complaints)
+│
+├── 📂 public/
+│   ├── 📄 favicon.svg
+│   └── 📄 icons.svg
+│
+└── 📂 src/                          # ─── FRONTEND SOURCE ─────────────────
+    ├── 📄 App.css                   # Global styles & Tailwind imports
+    ├── 📄 App.jsx                   # Root App component
+    ├── 📄 main.jsx                  # App entry point, mounts React into DOM
+    ├── 📄 routeTree.gen.ts          # Auto-generated route tree (do not edit)
+    ├── 📄 router.jsx                # TanStack Router configuration
+    ├── 📄 start.tsx
+    ├── 📄 styles.css                # Global styles
     │
-    └── 📂 src/main/
-        ├── 📂 resources/
-        │   ├── 📄 application.properties  # DB URL, JWT config, server port
-        │   └── 📄 data.sql                # Seed data (demo users & complaints)
-        │
-        └── 📂 java/com/citizen360/
-            ├── 📄 Citizen360Application.java   # @SpringBootApplication entry
-            │
-            ├── 📂 controller/               # REST API endpoints
-            │   ├── 📄 AuthController.java       # POST /api/auth/register, /login
-            │   ├── 📄 ComplaintController.java  # GET/POST /api/complaints
-            │   ├── 📄 DashboardController.java  # GET /api/dashboard/stats
-            │   └── 📄 FileController.java       # GET /api/files/{filename}
-            │
-            ├── 📂 service/                  # Business logic layer
-            │   ├── 📄 AuthService.java
-            │   ├── 📄 ComplaintService.java
-            │   ├── 📄 DashboardService.java
-            │   └── 📄 FileStorageService.java
-            │
-            ├── 📂 model/                    # JPA Entity classes (DB tables)
-            │   ├── 📄 User.java
-            │   ├── 📄 Complaint.java
-            │   ├── 📄 ComplaintImage.java
-            │   ├── 📄 ComplaintTimeline.java
-            │   └── 📂 enums/
-            │       ├── 📄 Role.java              # CITIZEN | OFFICER | ADMIN
-            │       ├── 📄 ComplaintStatus.java   # PENDING | ASSIGNED | IN_PROGRESS | RESOLVED | REJECTED
-            │       └── 📄 Priority.java          # LOW | MEDIUM | HIGH | URGENT
-            │
-            ├── 📂 dto/                      # Data Transfer Objects (request/response shapes)
-            │   ├── 📄 AuthRequest.java
-            │   ├── 📄 AuthResponse.java
-            │   ├── 📄 ComplaintRequest.java
-            │   ├── 📄 ComplaintResponse.java
-            │   └── 📄 DashboardResponse.java
-            │
-            ├── 📂 repository/               # Spring Data JPA interfaces (DB queries)
-            │   ├── 📄 UserRepository.java
-            │   ├── 📄 ComplaintRepository.java
-            │   ├── 📄 ComplaintImageRepository.java
-            │   └── 📄 ComplaintTimelineRepository.java
-            │
-            └── 📂 security/                 # JWT & Spring Security config
-                ├── 📄 JwtUtil.java           # Token generation & validation
-                ├── 📄 JwtAuthFilter.java     # Validates token on every request
-                └── 📄 SecurityConfig.java    # Security rules & CORS config
+    ├── 📂 assets/                   # Static assets & images
+    │   ├── 📄 download.jpg
+    │   └── 📄 smart-city-hero.jpg.ts
+    │
+    ├── 📂 components/
+    │   └── 📂 ui/                   # Shared Radix UI + Tailwind components
+    │       ├── 📄 accordation.jsx
+    │       ├── 📄 alert-dialog.jsx
+    │       ├── 📄 alert.jsx
+    │       ├── 📄 aspect-ratio.jsx
+    │       ├── 📄 avatar.jsx
+    │       ├── 📄 badge.jsx
+    │       ├── 📄 breadcrumd.jsx
+    │       ├── 📄 button.jsx
+    │       ├── 📄 calender.jsx
+    │       ├── 📄 card.jsx
+    │       ├── 📄 carousel.jsx
+    │       ├── 📄 chart.jsx
+    │       ├── 📄 checkbox.jsx
+    │       ├── 📄 collapsible.jsx
+    │       ├── 📄 command.jsx
+    │       ├── 📄 context-menu.jsx
+    │       ├── 📄 dialog.jsx
+    │       ├── 📄 drawer.jsx
+    │       ├── 📄 drepdown-menu.jsx
+    │       ├── 📄 form.jsx
+    │       ├── 📄 hover-card.jsx
+    │       ├── 📄 input-otp.jsx
+    │       ├── 📄 input.jsx
+    │       ├── 📄 label.jsx
+    │       ├── 📄 menu-bar.jsx
+    │       ├── 📄 navigation-menu.jsx
+    │       ├── 📄 pagination.jsx
+    │       ├── 📄 poopover.jsx
+    │       ├── 📄 progress.jsx
+    │       ├── 📄 radio-group.jsx
+    │       ├── 📄 resizable.jsx
+    │       ├── 📄 scroll-area.jsx
+    │       ├── 📄 select.jsx
+    │       ├── 📄 seperator.jsx
+    │       ├── 📄 sheet.jsx
+    │       ├── 📄 sidebar.jsx
+    │       ├── 📄 skeleton.jsx
+    │       ├── 📄 slider.jsx
+    │       ├── 📄 sonner.jsx
+    │       ├── 📄 switch.jsx
+    │       ├── 📄 table.jsx
+    │       ├── 📄 tabs.jsx
+    │       ├── 📄 textarea.jsx
+    │       ├── 📄 toggle-group.jsx
+    │       ├── 📄 toggle.jsx
+    │       └── 📄 tooltip.jsx
+    │
+    ├── 📂 hooks/                    # Custom React hooks
+    │   ├── 📄 use-mobile.jsx        # Detects mobile viewport
+    │   └── 📄 useAuth.jsx           # Auth state context
+    │
+    ├── 📂 lib/                      # Utilities & API clients
+    │   ├── 📄 api.js                # Fetch() calls to /api/* endpoints
+    │   ├── 📄 lovable-error-reporting.ts
+    │   └── 📄 utils.js
+    │
+    └── 📂 routes/                   # Pages (each file = one URL route)
+        ├── 📄 __root.jsx            # Root layout
+        ├── 📄 auth.jsx              # /auth — Login & Register page
+        ├── 📄 dashboard.jsx         # /dashboard — Officer control panel
+        ├── 📄 index.jsx             # / — Landing home page
+        ├── 📄 report.jsx            # /report — Submit a new complaint
+        └── 📄 track.jsx             # /track — Track complaint status
+
 ```
 
 ---
@@ -367,23 +429,23 @@ app.upload.dir=uploads
 ## 🔐 Authentication Flow (JWT)
 
 ```
-  User                   Frontend                  Backend
-   │                        │                          │
+  User                    Frontend                  Backend
+   │                         │                          │
    │── Login (email/pass) ──►│                          │
-   │                        │── POST /api/auth/login ──►│
-   │                        │                          │ Validate credentials
-   │                        │                          │ Generate JWT token
-   │                        │◄── { token, role, ... } ─│
-   │                        │ Store token in             │
-   │                        │ localStorage               │
-   │                        │                          │
+   │                         │── POST /api/auth/login ──►│
+   │                         │                          │ Validate credentials
+   │                         │                          │ Generate JWT token
+   │                         │◄── { token, role, ... } ─│
+   │                         │ Store token in           │
+   │                         │ localStorage             │
+   │                         │                          │
    │── Navigate to /report ─►│                          │
-   │                        │── GET /api/complaints ───►│
-   │                        │   (Authorization: Bearer   │
-   │                        │    <token>)                │ JwtAuthFilter validates
-   │                        │                          │ token, extracts user
-   │                        │◄── complaint data ────────│
-   │◄── rendered page ──────│                          │
+   │                         │── GET /api/complaints ──►│
+   │                         │   (Authorization: Bearer │
+   │                         │    <token>)              │ JwtAuthFilter validates
+   │                         │                          │ token, extracts user
+   │                         │◄── complaint data ───────│
+   │◄── rendered page ────── │                          │
 ```
 
 The JWT token:
@@ -468,9 +530,9 @@ These users are automatically inserted on first startup (password for all: `pass
                  └────┬───────────┘
                       │ Work complete
               ┌───────┴────────┐
-         ┌────▼─────┐     ┌───▼──────┐
-         │ RESOLVED │     │ REJECTED │
-         └──────────┘     └──────────┘
+         ┌────▼─────┐      ┌───▼──────┐
+         │ RESOLVED │      │ REJECTED │
+         └──────────┘      └──────────┘
 ```
 
 ---
