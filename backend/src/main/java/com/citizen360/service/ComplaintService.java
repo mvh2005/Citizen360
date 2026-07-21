@@ -21,15 +21,18 @@ public class ComplaintService {
     private final ComplaintImageRepository imageRepository;
     private final ComplaintTimelineRepository timelineRepository;
     private final UserRepository userRepository;
+    private final EmailService emailService;
 
     public ComplaintService(ComplaintRepository complaintRepository,
                             ComplaintImageRepository imageRepository,
                             ComplaintTimelineRepository timelineRepository,
-                            UserRepository userRepository) {
+                            UserRepository userRepository,
+                            EmailService emailService) {
         this.complaintRepository = complaintRepository;
         this.imageRepository = imageRepository;
         this.timelineRepository = timelineRepository;
         this.userRepository = userRepository;
+        this.emailService = emailService;
     }
 
     @Transactional
@@ -81,6 +84,19 @@ public class ComplaintService {
                 LocalDateTime.now()
         );
         timelineRepository.save(timeline);
+
+        // Send emails
+        String subject = "Complaint Submitted: " + complaint.getComplaintId();
+        String text = String.format("Dear %s,\n\nYour complaint '%s' has been successfully submitted and is under review.\n\nComplaint ID: %s\nStatus: PENDING",
+                user.getFullName(), complaint.getTitle(), complaint.getComplaintId());
+        emailService.sendEmail(user.getEmail(), subject, text);
+
+        List<User> admins = userRepository.findByRole(com.citizen360.model.enums.Role.ADMIN);
+        for (User admin : admins) {
+            String adminText = String.format("Admin Alert: A new complaint '%s' has been submitted by %s.\nComplaint ID: %s\nCategory: %s",
+                    complaint.getTitle(), user.getFullName(), complaint.getComplaintId(), complaint.getCategory());
+            emailService.sendEmail(admin.getEmail(), "New Complaint Filed: " + complaint.getComplaintId(), adminText);
+        }
 
         return toResponse(complaint, department);
     }
@@ -185,6 +201,19 @@ public class ComplaintService {
         timelineRepository.save(timeline);
 
         complaint = complaintRepository.save(complaint);
+
+        // Notify officer
+        String officerSub = "Complaint Assigned: " + complaint.getComplaintId();
+        String officerText = String.format("Dear %s,\n\nYou have been assigned to complaint '%s' (ID: %s).\nPlease review and take appropriate action.",
+                officer.getFullName(), complaint.getTitle(), complaint.getComplaintId());
+        emailService.sendEmail(officer.getEmail(), officerSub, officerText);
+
+        // Notify citizen
+        String citSub = "Complaint Update: " + complaint.getComplaintId();
+        String citText = String.format("Dear %s,\n\nYour complaint '%s' has been assigned to an officer.\nOfficer Name: %s\nStatus: ASSIGNED",
+                complaint.getUser().getFullName(), complaint.getTitle(), officer.getFullName());
+        emailService.sendEmail(complaint.getUser().getEmail(), citSub, citText);
+
         return toResponse(complaint, mapCategoryToDepartment(complaint.getCategory()));
     }
 
@@ -216,6 +245,20 @@ public class ComplaintService {
         timelineRepository.save(timeline);
 
         complaint = complaintRepository.save(complaint);
+
+        // Notify citizen
+        String updateSub = "Complaint Status Updated: " + complaint.getComplaintId();
+        String updateText = String.format("Dear %s,\n\nThe status of your complaint '%s' has been updated to %s.\n\nNote: %s",
+                complaint.getUser().getFullName(), complaint.getTitle(), status.name(), timelineDesc);
+        emailService.sendEmail(complaint.getUser().getEmail(), updateSub, updateText);
+
+        // Notify assigned officer if present
+        if (complaint.getAssignedOfficer() != null) {
+            String offText = String.format("Update on Complaint '%s' (ID: %s).\nStatus changed to %s.\n\nNote: %s",
+                    complaint.getTitle(), complaint.getComplaintId(), status.name(), timelineDesc);
+            emailService.sendEmail(complaint.getAssignedOfficer().getEmail(), updateSub, offText);
+        }
+
         return toResponse(complaint, mapCategoryToDepartment(complaint.getCategory()));
     }
 }
